@@ -1,11 +1,57 @@
-<div align="center">
+# GoToRapid Digital Products Agency (gotorapid.com)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A high-performance digital products marketplace & agency web application built with React, Vite, Tailwind CSS, and Lucide Icons.
 
-  <h1>Built with AI Studio</h2>
+---
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 🚀 Publishing to GitHub Pages
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+### Method 1: Automatic Deployment with GitHub Actions (Recommended)
 
-</div>
+This repository includes a pre-configured GitHub Actions workflow in `.github/workflows/deploy.yml`.
+
+1. **Push your code to GitHub**:
+   ```bash
+   git add .
+   git commit -m "Prepare for GitHub Pages"
+   git push origin main
+   ```
+
+2. **Enable GitHub Pages in your Repository Settings**:
+   - Go to your repository on GitHub.
+   - Navigate to **Settings** > **Pages** (under the "Code and automation" section).
+   - Under **Build and deployment** > **Source**, select **GitHub Actions**.
+
+3. **Done!**
+   - Whenever you push changes to `main` (or `master`), GitHub Actions will automatically build and publish your site at `https://<your-username>.github.io/<your-repo-name>/`.
+
+---
+
+### Method 2: Manual Build & Deploy
+
+If you prefer building locally and deploying manually:
+
+1. **Build the production static files**:
+   ```bash
+   npm install
+   npm run build
+   ```
+2. The compiled static website files will be generated in the `dist/` directory, ready to be hosted on any static hosting provider or the `gh-pages` branch.
+
+---
+
+## 🛠️ Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start local development server
+npm run dev
+
+# Run type check / linting
+npm run lint
+
+# Build for production
+npm run build
+```
