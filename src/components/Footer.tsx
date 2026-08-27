@@ -242,7 +242,7 @@ export const Footer: React.FC<FooterProps> = ({
             </h4>
             <div className="space-y-2 text-xs">
               <div className="flex flex-wrap gap-1.5">
-                {['USDT (TRC-20)', 'USDT (BEP-20)', 'Bitcoin (BTC)', 'Ethereum (ETH)', 'Solana (SOL)', 'TON (Telegram)', 'Litecoin (LTC)'].map((p) => (
+                {['BSC (BEP-20)', 'TRX (TRC-20)', 'ETH (ERC-20)', 'Solana (SOL)', 'Bitcoin (BTC)', 'Litecoin (LTC)', 'Dogecoin (DOGE)'].map((p) => (
                   <span key={p} className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-mono">
                     {p}
                   </span>

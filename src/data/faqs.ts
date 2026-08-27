@@ -41,6 +41,6 @@ export const FAQS: FAQItem[] = [
     id: 'faq-7',
     category: 'payment',
     question: 'What payment methods do you accept?',
-    answer: 'gotorapid.com operates exclusively through a direct Cryptocurrency Payment Gateway. We accept USDT (TRC-20, BEP-20, ERC-20), Bitcoin (BTC), Ethereum (ETH), Solana (SOL), TON (Telegram Wallet), and Litecoin (LTC). This guarantees 100% buyer anonymity, zero chargeback fraud risk, instant 15-minute automated vault delivery, and automated escrow protection.'
+    answer: 'gotorapid.com operates exclusively through a direct Cryptocurrency Payment Gateway. We accept BSC (BNB Smart Chain / BEP-20), TRX (TRON / TRC-20), Ethereum (ETH / ERC-20), Solana (SOL), Bitcoin (BTC), Litecoin (LTC), and Dogecoin (DOGE). This guarantees 100% buyer anonymity, zero chargeback fraud risk, instant 15-minute automated vault delivery, and automated escrow protection.'
   }
 ];

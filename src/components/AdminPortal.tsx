@@ -956,11 +956,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToStore }) => {
                   onChange={(e) => setManualCryptoCoin(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                 >
-                  <option value="USDT (TRC-20)">USDT (TRON TRC-20)</option>
-                  <option value="USDT (BEP-20)">USDT (BNB Smart Chain)</option>
-                  <option value="Bitcoin (BTC)">Bitcoin (BTC SegWit)</option>
-                  <option value="Solana (SOL)">Solana (SOL)</option>
-                  <option value="Telegram TON">TON (Telegram Wallet)</option>
+                  <option value="BSC">BSC (BNB Smart Chain / BEP-20)</option>
+                  <option value="TRX">TRX (TRON / TRC-20)</option>
+                  <option value="ETH">Ethereum (ETH / ERC-20)</option>
+                  <option value="SOL">Solana (SOL)</option>
+                  <option value="BTC">Bitcoin (BTC)</option>
+                  <option value="LTC">Litecoin (LTC)</option>
+                  <option value="DOGE">Dogecoin (DOGE)</option>
                   <option value="Direct Escrow Wire">Direct Escrow Wire</option>
                 </select>
               </div>

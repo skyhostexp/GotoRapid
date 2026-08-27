@@ -19,9 +19,11 @@ import {
   AlertTriangle,
   RefreshCw,
   Zap,
-  Info
+  Info,
+  Maximize2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import QRCode from 'qrcode';
 import { CartItem, Currency } from '../types';
 import { formatPrice } from '../utils/formatters';
 import { addOrder } from '../utils/orderStorage';
@@ -36,15 +38,13 @@ interface CheckoutModalProps {
 }
 
 export type CryptoCoin = 
-  | 'USDT_TRC20' 
-  | 'USDT_BEP20' 
-  | 'USDT_ERC20' 
-  | 'BTC' 
+  | 'BSC' 
+  | 'TRX' 
   | 'ETH' 
   | 'SOL' 
-  | 'TON' 
+  | 'BTC' 
   | 'LTC' 
-  | 'USDC_SOL';
+  | 'DOGE';
 
 interface CryptoConfig {
   name: string;
@@ -56,113 +56,85 @@ interface CryptoConfig {
   badge?: string;
   color: string;
   iconBg: string;
-  qrPayload: string;
 }
 
-const CRYPTO_CONFIGS: Record<CryptoCoin, CryptoConfig> = {
-  USDT_TRC20: {
-    name: 'Tether USD',
-    ticker: 'USDT',
-    network: 'TRON (TRC-20)',
-    address: 'TX9rqK2jLm8gX7N4vP8Z1wQ3mB5yC7dE2A',
+export const CRYPTO_CONFIGS: Record<CryptoCoin, CryptoConfig> = {
+  BSC: {
+    name: 'BNB Smart Chain (BEP-20)',
+    ticker: 'USDT / BNB',
+    network: 'BNB Smart Chain (BSC / BEP-20)',
+    address: '0xb0a2b177e1770a03a5aa1d2629c52276fd93bdc6',
+    usdRate: 1.0,
+    decimals: 2,
+    badge: 'Lowest Gas Fee',
+    color: 'text-yellow-400',
+    iconBg: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40'
+  },
+  TRX: {
+    name: 'TRON (TRC-20 / TRX)',
+    ticker: 'USDT / TRX',
+    network: 'TRON (TRC-20 / TRX)',
+    address: 'TSezBSdMrdARFQQebAYiwzkPku1qHijQEh',
     usdRate: 1.0,
     decimals: 2,
     badge: 'Fastest & Zero Gas',
     color: 'text-emerald-400',
-    iconBg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
-    qrPayload: 'tron:TX9rqK2jLm8gX7N4vP8Z1wQ3mB5yC7dE2A'
-  },
-  USDT_BEP20: {
-    name: 'Tether USD',
-    ticker: 'USDT',
-    network: 'BNB Smart Chain (BEP-20)',
-    address: '0x9a83B389148d42c8928A4739249b2c8928A47E5B',
-    usdRate: 1.0,
-    decimals: 2,
-    badge: 'Lowest Fee',
-    color: 'text-yellow-400',
-    iconBg: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40',
-    qrPayload: '0x9a83B389148d42c8928A4739249b2c8928A47E5B'
-  },
-  USDT_ERC20: {
-    name: 'Tether USD',
-    ticker: 'USDT',
-    network: 'Ethereum (ERC-20)',
-    address: '0x71C49b2c8928A47392a83B389148d428A4739249',
-    usdRate: 1.0,
-    decimals: 2,
-    color: 'text-cyan-400',
-    iconBg: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40',
-    qrPayload: 'ethereum:0x71C49b2c8928A47392a83B389148d428A4739249'
-  },
-  BTC: {
-    name: 'Bitcoin',
-    ticker: 'BTC',
-    network: 'Bitcoin Native SegWit',
-    address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-    usdRate: 96500,
-    decimals: 6,
-    badge: 'Decentralized',
-    color: 'text-amber-400',
-    iconBg: 'bg-amber-500/20 text-amber-400 border-amber-500/40',
-    qrPayload: 'bitcoin:bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'
+    iconBg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
   },
   ETH: {
-    name: 'Ethereum',
-    ticker: 'ETH',
-    network: 'Ethereum Mainnet',
-    address: '0x89D987349F279b47289d04F78248312987349F27',
+    name: 'Ethereum (ETH / ERC-20)',
+    ticker: 'ETH / USDT',
+    network: 'Ethereum Mainnet (ERC-20)',
+    address: '0xb0a2b177e1770a03a5aa1d2629c52276fd93bdc6',
     usdRate: 2750,
     decimals: 5,
+    badge: 'ETH & ERC-20',
     color: 'text-indigo-400',
-    iconBg: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/40',
-    qrPayload: 'ethereum:0x89D987349F279b47289d04F78248312987349F27'
+    iconBg: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/40'
   },
   SOL: {
-    name: 'Solana',
+    name: 'Solana (SOL)',
     ticker: 'SOL',
-    network: 'Solana Mainnet-Beta',
-    address: '7v91N4bL8Qp2x9wZ4mR5tK7dE2A89N4bL8Qp2x9wZ4mR',
+    network: 'Solana Mainnet (SOL)',
+    address: 'EDWaA1Kp6K9USLwuBAzmCvBxQkDiQ4Bk3LLgFxA2YdVr',
     usdRate: 195,
     decimals: 4,
     badge: 'Instant 400ms',
     color: 'text-purple-400',
-    iconBg: 'bg-purple-500/20 text-purple-400 border-purple-500/40',
-    qrPayload: 'solana:7v91N4bL8Qp2x9wZ4mR5tK7dE2A89N4bL8Qp2x9wZ4mR'
+    iconBg: 'bg-purple-500/20 text-purple-400 border-purple-500/40'
   },
-  TON: {
-    name: 'The Open Network',
-    ticker: 'TON',
-    network: 'TON Mainnet (Telegram Wallet)',
-    address: 'EQBvW8Z5huBkMJYdn3PCDpjuvuBp36OPFvJP2keAssGMTTHI',
-    usdRate: 6.40,
-    decimals: 3,
-    badge: 'Telegram Wallet',
-    color: 'text-sky-400',
-    iconBg: 'bg-sky-500/20 text-sky-400 border-sky-500/40',
-    qrPayload: 'ton://transfer/EQBvW8Z5huBkMJYdn3PCDpjuvuBp36OPFvJP2keAssGMTTHI'
+  BTC: {
+    name: 'Bitcoin (BTC)',
+    ticker: 'BTC',
+    network: 'Bitcoin (BTC Network)',
+    address: '18QpVzNvW5YVtywK4Zih1VKLB2gEhRojT9',
+    usdRate: 96500,
+    decimals: 6,
+    badge: 'Primary Crypto',
+    color: 'text-amber-400',
+    iconBg: 'bg-amber-500/20 text-amber-400 border-amber-500/40'
   },
   LTC: {
-    name: 'Litecoin',
+    name: 'Litecoin (LTC)',
     ticker: 'LTC',
-    network: 'Litecoin Network',
-    address: 'ltc1q9x287h2k93kflq298sdmfnq928120302mfnq92',
+    network: 'Litecoin (LTC Network)',
+    address: 'LR676Tw3B3FatHCbnjT14D1TmGfpmwM2WG',
     usdRate: 98,
     decimals: 4,
-    color: 'text-slate-300',
-    iconBg: 'bg-slate-500/20 text-slate-300 border-slate-500/40',
-    qrPayload: 'litecoin:ltc1q9x287h2k93kflq298sdmfnq928120302mfnq92'
+    badge: 'Low Transfer Fee',
+    color: 'text-cyan-400',
+    iconBg: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'
   },
-  USDC_SOL: {
-    name: 'USD Coin',
-    ticker: 'USDC',
-    network: 'Solana SPL',
-    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-    usdRate: 1.0,
+  DOGE: {
+    name: 'Dogecoin (DOGE)',
+    ticker: 'DOGE',
+    network: 'Dogecoin (DOGE Network)',
+    address: 'DAVEHhBy6NVajnwF9g8eVHsQj1rmfVBx3n',
+    usdRate: 0.25,
     decimals: 2,
-    color: 'text-blue-400',
-    iconBg: 'bg-blue-500/20 text-blue-400 border-blue-500/40',
-    qrPayload: 'solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+    badge: 'Micro Fees',
+    color: 'text-orange-400',
+    iconBg: 'bg-orange-500/20 text-orange-400 border-orange-500/40'
   }
 };
 
@@ -177,7 +149,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [email, setEmail] = useState('');
   const [telegramHandle, setTelegramHandle] = useState('');
   const [txHash, setTxHash] = useState('');
-  const [selectedCrypto, setSelectedCrypto] = useState<CryptoCoin>('USDT_TRC20');
+  const [selectedCrypto, setSelectedCrypto] = useState<CryptoCoin>('TRX');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedOrderId, setGeneratedOrderId] = useState('');
@@ -185,6 +157,44 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [copiedAmount, setCopiedAmount] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [timeLeft, setTimeLeft] = useState(900); // 15:00 countdown
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [isQrLoading, setIsQrLoading] = useState<boolean>(true);
+  const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
+
+  const currentCoin = CRYPTO_CONFIGS[selectedCrypto] || CRYPTO_CONFIGS.TRX;
+
+  // Generate authentic QR code whenever selected coin changes
+  useEffect(() => {
+    if (!currentCoin?.address) return;
+    let isMounted = true;
+    setIsQrLoading(true);
+
+    QRCode.toDataURL(currentCoin.address, {
+      width: 320,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      color: {
+        dark: '#070b14',
+        light: '#ffffff'
+      }
+    })
+      .then((url) => {
+        if (isMounted) {
+          setQrDataUrl(url);
+          setIsQrLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Error generating QR code:', err);
+        if (isMounted) {
+          setIsQrLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCrypto, currentCoin.address]);
 
   // Timer countdown for rate lock
   useEffect(() => {
@@ -204,7 +214,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const discountAmountUsd = (rawSubtotalUsd * discountPercent) / 100;
   const finalTotalUsd = rawSubtotalUsd - discountAmountUsd;
 
-  const currentCoin = CRYPTO_CONFIGS[selectedCrypto];
   const cryptoPayableAmount = (finalTotalUsd / currentCoin.usdRate).toFixed(currentCoin.decimals);
 
   const formatTimer = (seconds: number) => {
@@ -245,7 +254,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       cryptoAmount: `${cryptoPayableAmount} ${currentCoin.ticker}`,
       txHash: txHash || undefined,
       status: 'Escrow Locked',
-      deliveryVaultId: `VAULT-${selectedCrypto.split('_')[0]}-${Math.floor(1000 + Math.random() * 9000)}-AES256`,
+      deliveryVaultId: `VAULT-${selectedCrypto}-${Math.floor(1000 + Math.random() * 9000)}-AES256`,
       masterDecryptionKey: `GOTORAPID-${randomOrderNum}-VAULT-KEY-AES256`,
       proxyAssigned: 'Dedicated Residential Static Proxy (Port 8443)',
       warrantyDays: cartItems[0]?.product.warrantyDays || 30,
@@ -284,6 +293,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     navigator.clipboard.writeText(`GOTORAPID-${generatedOrderId}-VAULT-KEY-AES256`);
     setCopiedKey(true);
     setTimeout(() => setCopiedKey(false), 2500);
+  };
+
+  const handleDownloadQr = () => {
+    if (!qrDataUrl) return;
+    const a = document.createElement('a');
+    a.href = qrDataUrl;
+    a.download = `gotorapid-${selectedCrypto}-wallet-qr.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
@@ -415,7 +434,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
                   {(Object.keys(CRYPTO_CONFIGS) as CryptoCoin[]).map((coinKey) => {
                     const coin = CRYPTO_CONFIGS[coinKey];
                     const isSelected = selectedCrypto === coinKey;
@@ -424,24 +443,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         key={coinKey}
                         type="button"
                         onClick={() => setSelectedCrypto(coinKey)}
-                        className={`p-2.5 rounded-xl border text-left flex flex-col justify-between space-y-1 transition cursor-pointer ${
+                        className={`p-2 rounded-xl border text-left flex flex-col justify-between space-y-1 transition cursor-pointer ${
                           isSelected
-                            ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-md shadow-emerald-500/10'
+                            ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/40'
                             : 'bg-slate-900/80 border-slate-800/80 text-slate-300 hover:bg-slate-800/80 hover:border-slate-700'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className={`text-xs font-bold font-mono ${coin.color}`}>
-                            {coin.ticker}
+                          <span className={`text-xs font-black font-mono ${coin.color}`}>
+                            {coinKey}
                           </span>
                           {coin.badge && (
-                            <span className="text-[9px] px-1 py-0.2 rounded bg-slate-950 font-medium text-slate-300 border border-slate-800">
+                            <span className="text-[8px] px-1 py-0.2 rounded bg-slate-950 font-medium text-slate-300 border border-slate-800 hidden sm:inline">
                               {coin.badge}
                             </span>
                           )}
                         </div>
                         <span className="text-[10px] text-slate-400 truncate block">
-                          {coin.network}
+                          {coin.ticker}
                         </span>
                       </button>
                     );
@@ -476,69 +495,65 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </button>
                 </div>
 
-                {/* QR Code & Deposit Address Layout */}
+                {/* Real Scannable QR Code & Deposit Address Layout */}
                 <div className="flex flex-col sm:flex-row gap-3.5 items-center">
-                  {/* Visual QR Code Card */}
-                  <div className="p-2.5 rounded-xl bg-white text-slate-950 flex flex-col items-center justify-center shrink-0 shadow-md">
-                    <svg
-                      className="w-24 h-24 sm:w-28 sm:h-28"
-                      viewBox="0 0 100 100"
-                      fill="currentColor"
-                    >
-                      {/* Stylized QR Code Pattern */}
-                      <rect x="0" y="0" width="30" height="30" rx="3" fill="#0c1220" />
-                      <rect x="5" y="5" width="20" height="20" fill="white" />
-                      <rect x="9" y="9" width="12" height="12" fill="#0c1220" />
-
-                      <rect x="70" y="0" width="30" height="30" rx="3" fill="#0c1220" />
-                      <rect x="75" y="5" width="20" height="20" fill="white" />
-                      <rect x="79" y="9" width="12" height="12" fill="#0c1220" />
-
-                      <rect x="0" y="70" width="30" height="30" rx="3" fill="#0c1220" />
-                      <rect x="5" y="75" width="20" height="20" fill="white" />
-                      <rect x="9" y="79" width="12" height="12" fill="#0c1220" />
-
-                      {/* Data dots matrix */}
-                      <circle cx="45" cy="15" r="3" fill="#0c1220" />
-                      <circle cx="55" cy="15" r="3" fill="#0c1220" />
-                      <circle cx="40" cy="25" r="3" fill="#0c1220" />
-                      <circle cx="60" cy="25" r="3" fill="#0c1220" />
-                      <circle cx="45" cy="35" r="3" fill="#0c1220" />
-
-                      <circle cx="15" cy="45" r="3" fill="#0c1220" />
-                      <circle cx="25" cy="45" r="3" fill="#0c1220" />
-                      <circle cx="35" cy="50" r="3" fill="#0c1220" />
-                      <circle cx="50" cy="50" r="4" fill="#10b981" />
-                      <circle cx="65" cy="50" r="3" fill="#0c1220" />
-                      <circle cx="75" cy="45" r="3" fill="#0c1220" />
-                      <circle cx="85" cy="45" r="3" fill="#0c1220" />
-
-                      <circle cx="45" cy="65" r="3" fill="#0c1220" />
-                      <circle cx="55" cy="65" r="3" fill="#0c1220" />
-                      <circle cx="40" cy="75" r="3" fill="#0c1220" />
-                      <circle cx="60" cy="75" r="3" fill="#0c1220" />
-                      <circle cx="75" cy="75" r="3" fill="#0c1220" />
-                      <circle cx="85" cy="85" r="3" fill="#0c1220" />
-                      <circle cx="75" cy="95" r="3" fill="#0c1220" />
-                    </svg>
-                    <span className="text-[9px] font-bold text-slate-800 uppercase tracking-tight mt-1">
-                      Scan in Wallet App
-                    </span>
+                  {/* Visual Real QR Code Card */}
+                  <div className="relative group p-2 rounded-xl bg-white text-slate-950 flex flex-col items-center justify-center shrink-0 shadow-lg border border-slate-200/80">
+                    {isQrLoading ? (
+                      <div className="w-28 h-28 sm:w-32 sm:h-32 flex flex-col items-center justify-center space-y-1">
+                        <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-[9px] text-slate-600 font-mono">Generating QR...</span>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <img 
+                          src={qrDataUrl} 
+                          alt={`${currentCoin.name} Escrow Wallet Address QR Code`} 
+                          className="w-28 h-28 sm:w-32 sm:h-32 object-contain rounded-md"
+                          loading="eager"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setIsQrModalOpen(true)}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white rounded-md text-xs font-semibold space-x-1 cursor-pointer"
+                          title="Click to view large QR Code"
+                        >
+                          <Maximize2 className="w-4 h-4" />
+                          <span className="text-[10px]">Enlarge</span>
+                        </button>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between w-full mt-1.5 pt-1 border-t border-slate-200">
+                      <span className="text-[9px] font-bold text-slate-800 uppercase tracking-tight">
+                        Scan with Wallet
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleDownloadQr}
+                        className="text-[9px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center space-x-0.5 cursor-pointer"
+                        title="Download QR Code image"
+                      >
+                        <Download className="w-2.5 h-2.5" />
+                        <span>Save</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Address Details */}
                   <div className="flex-1 space-y-2 w-full">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400">Network: <strong className="text-white">{currentCoin.network}</strong></span>
+                      <span className="text-slate-400">
+                        Coin / Network: <strong className="text-white">{currentCoin.name}</strong>
+                      </span>
                       <span className="text-emerald-400 text-[11px] font-semibold flex items-center space-x-1">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>Gateway Active</span>
+                        <span>Verified Gateway</span>
                       </span>
                     </div>
 
                     <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
                       <div className="flex items-center justify-between text-[11px] text-slate-400">
-                        <span>Send to Official Escrow Address:</span>
+                        <span>Official Escrow Receiving Wallet:</span>
                         <button
                           type="button"
                           onClick={handleCopyAddress}
@@ -548,14 +563,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                           <span>{copiedAddress ? 'Copied' : 'Copy Address'}</span>
                         </button>
                       </div>
-                      <div className="font-mono text-xs text-emerald-300 break-all select-all font-semibold bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                      <div className="font-mono text-xs text-emerald-300 break-all select-all font-bold bg-slate-900/90 p-2.5 rounded-lg border border-slate-800/80 shadow-inner">
                         {currentCoin.address}
                       </div>
                     </div>
 
-                    <p className="text-[10px] text-slate-400 leading-tight">
-                      ⚠️ Send only <strong className="text-white">{currentCoin.ticker}</strong> via <strong className="text-white">{currentCoin.network}</strong>. Sending via any other network will result in delay.
-                    </p>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400">
+                      <span className="flex items-center space-x-1">
+                        <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                        <span>Direct 100% Escrow Wallet</span>
+                      </span>
+                      <span className="font-mono text-slate-400">
+                        Network: <span className="text-slate-200 font-semibold">{currentCoin.network}</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -653,6 +674,72 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* Enlarge QR Code Modal Overlay */}
+      {isQrModalOpen && (
+        <div 
+          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-150"
+          onClick={() => setIsQrModalOpen(false)}
+        >
+          <div 
+            className="relative max-w-sm w-full bg-[#0b111e] border border-slate-700 rounded-3xl p-6 text-center space-y-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="text-left">
+                <h3 className="text-sm font-bold text-white font-['Outfit']">
+                  {currentCoin.name}
+                </h3>
+                <p className="text-[11px] text-slate-400 font-mono">
+                  Network: {currentCoin.network}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsQrModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 bg-white rounded-2xl inline-block shadow-xl border border-slate-300">
+              {qrDataUrl && (
+                <img 
+                  src={qrDataUrl} 
+                  alt={`${currentCoin.ticker} QR Code`} 
+                  className="w-56 h-56 sm:w-64 sm:h-64 object-contain mx-auto"
+                />
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-emerald-300 break-all select-all font-bold">
+                {currentCoin.address}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyAddress}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition flex items-center justify-center space-x-1.5 cursor-pointer border border-slate-700"
+                >
+                  {copiedAddress ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedAddress ? 'Address Copied' : 'Copy Address'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadQr}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-xs font-black text-slate-950 transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-emerald-500/20"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download QR</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

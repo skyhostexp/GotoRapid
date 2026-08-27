@@ -12,7 +12,7 @@ export const HowItWorks: React.FC = () => {
     {
       num: '02',
       title: 'Crypto Escrow Checkout',
-      desc: 'Pay securely with USDT (TRC-20 / BEP-20), Bitcoin, Ethereum, Solana, or TON. Your payment is held in 24-hour smart escrow until you inspect your vault.',
+      desc: 'Pay securely with BSC (BEP-20), TRX (TRC-20), Ethereum, Solana, Bitcoin, Litecoin, or Dogecoin. Your payment is held in 24-hour smart escrow until you inspect your vault.',
       icon: Coins
     },
     {
