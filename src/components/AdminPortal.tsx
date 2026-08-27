@@ -168,23 +168,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToStore }) => {
 
   // Delete Order Handler
   const handleDeleteOrder = (orderId: string) => {
-    if (window.confirm(`Are you sure you want to delete order #${orderId}? This cannot be undone.`)) {
-      const updated = deleteOrder(orderId);
-      setOrders(updated);
-      if (selectedOrder && selectedOrder.id === orderId) {
-        setSelectedOrder(null);
-      }
-      showToast(`Order #${orderId} has been deleted.`);
+    const updated = deleteOrder(orderId);
+    setOrders(updated);
+    if (selectedOrder && selectedOrder.id === orderId) {
+      setSelectedOrder(null);
     }
+    showToast(`Order #${orderId} deleted successfully.`);
   };
 
   // Reset to default seed orders
   const handleResetOrders = () => {
-    if (window.confirm('Reset all order data to initial demo orders?')) {
-      const reset = resetOrdersToDefault();
-      setOrders(reset);
-      showToast('Order database reset to defaults.');
-    }
+    const reset = resetOrdersToDefault();
+    setOrders(reset);
+    showToast('Order database reset to default demo orders.');
   };
 
   // Copy helper
@@ -198,8 +194,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToStore }) => {
   // Create Manual Order Handler
   const handleCreateManualOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualCustomerEmail) {
-      alert('Please enter a customer email.');
+    if (!manualCustomerEmail || !manualCustomerEmail.includes('@')) {
+      showToast('Please enter a valid customer email address.');
       return;
     }
 

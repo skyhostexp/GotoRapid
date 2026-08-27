@@ -147,6 +147,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   onOrderSuccess
 }) => {
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [telegramHandle, setTelegramHandle] = useState('');
   const [txHash, setTxHash] = useState('');
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoCoin>('TRX');
@@ -224,10 +225,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const handleCompleteOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      alert('Please enter your delivery email address.');
+    if (!email || !email.includes('@')) {
+      setEmailError('Please enter a valid delivery email address (e.g. buyer@example.com)');
       return;
     }
+    setEmailError(null);
 
     setIsProcessing(true);
     const randomOrderNum = `GR-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -597,10 +599,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       type="email"
                       required
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (emailError) setEmailError(null);
+                      }}
                       placeholder="e.g. buyer@agency.com"
-                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      className={`w-full px-3 py-2 rounded-xl bg-slate-950 border text-xs text-slate-200 placeholder-slate-500 focus:outline-none ${
+                        emailError ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-700 focus:border-emerald-500'
+                      }`}
                     />
+                    {emailError && (
+                      <span className="text-[11px] text-rose-400 font-medium block mt-1">
+                        {emailError}
+                      </span>
+                    )}
                   </div>
 
                   <div>
